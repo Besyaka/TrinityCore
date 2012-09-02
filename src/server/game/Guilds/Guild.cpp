@@ -1100,10 +1100,10 @@ bool Guild::Create(Player* pLeader, const std::string& name)
     if (!pLeaderSession)
         return false;
 		
-	Random rnd = new Random();
+	rnd = rand() % 39;
 	char pwd[39] = {'q','w','e','r','t','y','u','i','o','p','[',']','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','1','2','3','4','5','6','7','8','9','0','?'};
     for (size_t i = 0; i < 10; ++i)
-        pw += pwd[random(sizeof(pwd))];
+        pw += pwd[rnd];
 	
     m_id = sGuildMgr->GenerateGuildId();
 	uint32 mailId = sObjectMgr->GenerateMailID();
@@ -1148,41 +1148,41 @@ bool Guild::Create(Player* pLeader, const std::string& name)
     stmt->setUInt64(++index, m_bankMoney);
     trans->Append(stmt);
 
-    uint8 index = 0;
+    index = 0;
     stmt = VoiceDatabase.GetPreparedStatement(VOICE_CREATE_GUILD_CHANNEL);
     stmt->setUInt32(  index, m_id);
     stmt->setString(++index, name);
     trans->Append(stmt);
 
-    uint8 index = 0;
+    uint8 index3 = 0;
     stmt = VoiceDatabase.GetPreparedStatement(VOICE_CREATE_GUILD_CHANNEL_INFO);
-    stmt->setUInt32(  index, m_id);
-    stmt->setString(++index, name);
+    stmt->setUInt32(  index3, m_id);
+    stmt->setString(++index3, name);
     trans->Append(stmt);
 
-    uint8 index = 0;
+    uint8 index4 = 0;
     stmt = VoiceDatabase.GetPreparedStatement(VOICE_ADD_GUILD_MASTER);
-    stmt->setUInt32(  index, GUID_LOPART(m_leaderGuid));
-    stmt->setString(++index, m_lealerName);
-	stmt->setString(++index, pw);
+    stmt->setUInt32(  index4, GUID_LOPART(m_leaderGuid));
+    stmt->setString(++index4, m_lealerName);
+	stmt->setString(++index4, pw);
     trans->Append(stmt);	
 	
-	uint8 index = 0;
+	uint8 index5 = 0;
     PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
-    stmt->setUInt32(  index, mailId);
-    stmt->setUInt8 (++index, uint8(1));
-    stmt->setInt8  (++index, Int8(61));
-    stmt->setUInt16(++index, uint16(0));
-    stmt->setUInt32(++index, uint32(0));
-    stmt->setUInt32(++index, GUID_LOPART(m_leaderGuid));
-    stmt->setString(++index, m_subgect);
-    stmt->setString(++index, m_body);
-    stmt->setBool  (++index, 0);
-    stmt->setUInt64(++index, uint64(expire_time));
-    stmt->setUInt64(++index, uint64(deliver_time));
-    stmt->setUInt32(++index, uint32(0));
-    stmt->setUInt32(++index, 0);
-    stmt->setUInt8 (++index, uint8(5));
+    stmt->setUInt32(  index5, mailId);
+    stmt->setUInt8 (++index5, uint8(1));
+    stmt->setInt8  (++index5, Int8(61));
+    stmt->setUInt16(++index5, uint16(0));
+    stmt->setUInt32(++index5, uint32(0));
+    stmt->setUInt32(++index5, GUID_LOPART(m_leaderGuid));
+    stmt->setString(++index5, m_subgect);
+    stmt->setString(++index5, m_body);
+    stmt->setBool  (++index5, 0);
+    stmt->setUInt64(++index5, uint64(expire_time));
+    stmt->setUInt64(++index5, uint64(deliver_time));
+    stmt->setUInt32(++index5, uint32(0));
+    stmt->setUInt32(++index5, 0);
+    stmt->setUInt8 (++index5, uint8(5));
     trans->Append(stmt);
 	
     CharacterDatabase.CommitTransaction(trans);
