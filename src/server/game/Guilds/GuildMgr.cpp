@@ -20,7 +20,7 @@
 
 GuildMgr::GuildMgr()
 {
-    NextGuildId = 1;
+    NextGuildId = 100;
 }
 
 GuildMgr::~GuildMgr()

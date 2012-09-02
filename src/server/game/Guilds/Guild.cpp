@@ -1099,14 +1099,27 @@ bool Guild::Create(Player* pLeader, const std::string& name)
     WorldSession* pLeaderSession = pLeader->GetSession();
     if (!pLeaderSession)
         return false;
-
+		
+	Random rnd = new Random();
+	char pwd[39] = {'q','w','e','r','t','y','u','i','o','p','[',']','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','1','2','3','4','5','6','7','8','9','0','?'};
+    for (size_t i = 0; i < 10; ++i)
+        pw += pwd[random(sizeof(pwd))];
+	
     m_id = sGuildMgr->GenerateGuildId();
+	uint32 mailId = sObjectMgr->GenerateMailID();
     m_leaderGuid = pLeader->GetGUID();
+	m_lealerName = pLeader->GetName();
     m_name = name;
     m_info = "";
     m_motd = "No message set.";
     m_bankMoney = 0;
     m_createdDate = ::time(NULL);
+	m_subgect = "Главе гильдии";
+	m_subgect += name;
+	m_body = "Для вашей гильдии создан отдельный канал на голосовом сервере. Логин - ник вашего персонада. Пароль - ";
+	m_body += pw;
+	expire_delay = 3 * DAY;
+	time_t deliver_time = time(NULL);
     _CreateLogHolders();
 
     sLog->outDebug(LOG_FILTER_GUILD, "GUILD: creating guild [%s] for leader %s (%u)",
@@ -1135,6 +1148,43 @@ bool Guild::Create(Player* pLeader, const std::string& name)
     stmt->setUInt64(++index, m_bankMoney);
     trans->Append(stmt);
 
+    uint8 index = 0;
+    stmt = VoiceDatabase.GetPreparedStatement(VOICE_CREATE_GUILD_CHANNEL);
+    stmt->setUInt32(  index, m_id);
+    stmt->setString(++index, name);
+    trans->Append(stmt);
+
+    uint8 index = 0;
+    stmt = VoiceDatabase.GetPreparedStatement(VOICE_CREATE_GUILD_CHANNEL_INFO);
+    stmt->setUInt32(  index, m_id);
+    stmt->setString(++index, name);
+    trans->Append(stmt);
+
+    uint8 index = 0;
+    stmt = VoiceDatabase.GetPreparedStatement(VOICE_ADD_GUILD_MASTER);
+    stmt->setUInt32(  index, GUID_LOPART(m_leaderGuid));
+    stmt->setString(++index, m_lealerName);
+	stmt->setString(++index, pw);
+    trans->Append(stmt);	
+	
+	uint8 index = 0;
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
+    stmt->setUInt32(  index, mailId);
+    stmt->setUInt8 (++index, uint8(1));
+    stmt->setInt8  (++index, Int8(61));
+    stmt->setUInt16(++index, uint16(0));
+    stmt->setUInt32(++index, uint32(0));
+    stmt->setUInt32(++index, GUID_LOPART(m_leaderGuid));
+    stmt->setString(++index, m_subgect);
+    stmt->setString(++index, m_body);
+    stmt->setBool  (++index, 0);
+    stmt->setUInt64(++index, uint64(expire_time));
+    stmt->setUInt64(++index, uint64(deliver_time));
+    stmt->setUInt32(++index, uint32(0));
+    stmt->setUInt32(++index, 0);
+    stmt->setUInt8 (++index, uint8(5));
+    trans->Append(stmt);
+	
     CharacterDatabase.CommitTransaction(trans);
     // Create default ranks
     _CreateDefaultGuildRanks(pLeaderSession->GetSessionDbLocaleIndex());

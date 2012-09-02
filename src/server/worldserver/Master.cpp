@@ -379,6 +379,29 @@ bool Master::_StartDB()
         sLog->outError(LOG_FILTER_WORLDSERVER, "Cannot connect to world database %s", dbstring.c_str());
         return false;
     }
+	
+    dbstring = ConfigMgr::GetStringDefault("VoiceDatabaseInfo", "");
+    if (dbstring.empty())
+    {
+        sLog->outError(LOG_FILTER_WORLDSERVER, "Voice database not specified in configuration file");
+        return false;
+    }
+
+    async_threads = ConfigMgr::GetIntDefault("VoiceDatabase.WorkerThreads", 1);
+    if (async_threads < 1 || async_threads > 32)
+    {
+        sLog->outError(LOG_FILTER_WORLDSERVER, "Voice database: invalid number of worker threads specified. "
+            "Please pick a value between 1 and 32.");
+        return false;
+    }
+
+    synch_threads = ConfigMgr::GetIntDefault("VoiceDatabase.SynchThreads", 1);
+    ///- Initialise the world database
+    if (!WorldDatabase.Open(dbstring, async_threads, synch_threads))
+    {
+        sLog->outError(LOG_FILTER_WORLDSERVER, "Cannot connect to Voice database %s", dbstring.c_str());
+        return false;
+    }
 
     ///- Get character database info from configuration file
     dbstring = ConfigMgr::GetStringDefault("CharacterDatabaseInfo", "");
